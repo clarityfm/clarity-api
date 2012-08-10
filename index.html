@@ -1,0 +1,675 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Clarity-api by clarityfm</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/clarityfm/clarity-api">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/clarityfm/clarity-api/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/clarityfm/clarity-api/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Clarity-api</h1>
+          <p>Clarity API documentation.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/clarityfm">clarityfm</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>Clarity API</h1>
+
+<p>The Clarity API is in beta and is still subject to change. Major breakage is unlikely, but response parameters may yet be renamed, added or removed.</p>
+
+<p>Although not specified in the <a href="#endpoints">Endpoints</a> documentation, all Clarity API calls require an <code>oauth_token</code> for authorization and to establish identity.  More information about registering an OAuth client and obtaining a token can be found in the <a href="#oauth">OAuth</a> section.</p>
+
+<h2>OAuth</h2>
+
+<p>Clarity is an OAuth provider.  Presently we implement a subset of v10 of the OAuth2 draft specification, found at <a href="http://tools.ietf.org/html/draft-ietf-oauth-v2-10">http://tools.ietf.org/html/draft-ietf-oauth-v2-10</a>. Rack applications can use the <a href="http://github.com/clarityfm/omniauth-clarity">omniauth-clarity</a> gem for painless integration.</p>
+
+<h3>Registering an Application</h3>
+
+<p>OAuth Applications can be registered at <a href="http://api.clarity.fm/applications">http://api.clarity.fm/applications</a>.  Upon creation, you will be issued a client_id and a client_secret, both of which are required for authorization requests.  Store your secret someplace safe, as it's not possible to obtain it again after the initial application creation.  It can be regenerated, but this will require updating all clients.</p>
+
+<h3>Requesting an oauth_token</h3>
+
+<pre><code>GET https://clarity.fm/oauth/authorize?
+    client_id=...&amp;
+    response_type=code
+</code></pre>
+
+<pre><code>HTTP 302 http://your/callback/uri?code=...
+</code></pre>
+
+<p>If successful, we'll redirect to the redirect URI that was specified when the application was created, passing a code parameter in the query string.  This can then be used to request an oauth_token:</p>
+
+<pre><code>POST https://clarity.fm/oauth/authorize?
+     client_id=...&amp;
+     client_secret=...&amp;
+     code=...&amp;
+     grant_type=authorization_code
+</code></pre>
+
+<pre><code>  HTTP 200
+  Body: oauth_token
+</code></pre>
+
+<p>If all goes well, we'll respond with the oauth_token, which must be passed as a parameter on all API requests.</p>
+
+<p>If you're using Clarity to provide authorization for your application, you'll likely want to call the <a href="#GETme">GET /v1/me</a> endpoint to obtain information about the current member.</p>
+
+<pre><code>  GET https://api.clarity.fm/v1/me?oauth_token=...
+</code></pre>
+
+<h2>Endpoints</h2>
+
+<h4>Members</h4>
+
+<ul>
+<li><a href="#get-v1members">GET /v1/members</a></li>
+<li><a href="#get-v1me">GET /v1/me</a></li>
+</ul><h4>Calls</h4>
+
+<ul>
+<li><a href="#get-v1callsrequested">GET /v1/calls/requested</a></li>
+<li><a href="#get-v1callscallback">GET /v1/calls/callback</a></li>
+<li><a href="#get-v1callscompleted">GET /v1/calls/completed</a></li>
+<li><a href="#get-v1callscanceled">GET /v1/calls/canceled</a></li>
+<li><a href="#get-v1callsid">GET /v1/calls/:id</a></li>
+<li><a href="#post-v1callsidconnect">POST /v1/calls/:id/connect</a></li>
+<li><a href="#post-v1calls">POST /v1/calls</a></li>
+</ul><h4>Needs</h4>
+
+<ul>
+<li><a href="#get-v1needs">GET /v1/needs</a></li>
+<li><a href="#post-v1needs">POST /v1/needs</a></li>
+<li><a href="#post-v1needsidfulfill">POST /v1/needs/:id/fulfill</a></li>
+</ul><h4>Search</h4>
+
+<ul>
+<li><a href="#get-v1search">GET /v1/search</a></li>
+</ul><h4>Organizations</h4>
+
+<ul>
+<li><a href="#get-v1organizations">GET /v1/organizations</a></li>
+<li><a href="#get-v1organizationsid">GET /v1/organizations/:id</a></li>
+</ul><h4>Messages</h4>
+
+<ul>
+<li><a href="#get-v1messages">GET /v1/messages</a></li>
+<li><a href="#get-v1messagesmember_id">GET /v1/messages/:member_id</a></li>
+<li><a href="#post-v1messagesmember_id">POST /v1/messages/:member_id</a></li>
+</ul><hr><h2>Members</h2>
+
+<h3>GET /v1/members</h3>
+
+<ul>
+<li>
+<strong>id</strong>: <em>(optional)</em> A Clarity id or screen name</li>
+<li>
+<strong>twitter</strong>: <em>(optional)</em> A twitter handle</li>
+<li>
+<strong>email</strong>: <em>(optional)</em> An email address</li>
+</ul><p>Get member information by id, screen name, Twitter handle or email address.</p>
+
+<pre><code>GET /v1/members/danmartell
+GET /v1/members/7
+GET /v1/members?id=danmartell
+GET /v1/members?twitter=danmartell
+GET /v1/members?email=dan@larity.fm
+</code></pre>
+
+<div class="highlight"><pre><span class="p">{</span>
+  <span class="s2">"amount_generated_for_charity"</span><span class="o">:</span> <span class="mf">1137.15</span><span class="p">,</span>
+  <span class="s2">"average_call_duration"</span><span class="o">:</span> <span class="mi">750</span><span class="p">,</span>
+  <span class="s2">"average_response_time"</span><span class="o">:</span> <span class="mi">89544</span><span class="p">,</span>
+  <span class="s2">"bio"</span><span class="o">:</span> <span class="s2">"Canadian Entrepreneur.  Founder of Clarity.fm - Angel Investor (15 tech startups). Co-Founder of Flowtown (Acquired 11'), Founder of Spheric Technologies (Acquired 08'), Mentor @ 500Startup, GrowLabs &amp; theC100.org"</span><span class="p">,</span>
+  <span class="s2">"charity_logo"</span><span class="o">:</span> <span class="s2">"http://s3.amazonaws.com/clarityfm-staging/charities/logos/1/original/charity_water.jpeg?1327007697"</span><span class="p">,</span>
+  <span class="s2">"charity_name"</span><span class="o">:</span> <span class="s2">"charity: water"</span><span class="p">,</span>
+  <span class="s2">"charity_url"</span><span class="o">:</span> <span class="s2">"http://www.charitywater.org/"</span><span class="p">,</span>
+  <span class="s2">"clarity_url"</span><span class="o">:</span> <span class="s2">"http://clarity.fm/danmartell"</span><span class="p">,</span>
+  <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2011-10-20T15:18:51Z"</span><span class="p">,</span>
+  <span class="s2">"expertise_body"</span><span class="o">:</span> <span class="s2">"I've been an entrepreneur for over 10+ years.  I've started 5 companies, the first 2 were complete failures and eventually got it right in 2004.  I've bootstrapped technology companies without funding from a small town in Canada, as well as built, raised venture capital and sold a company in San Francisco.  I love technology, product and marketing."</span><span class="p">,</span>
+  <span class="s2">"facebook_profile_url"</span><span class="o">:</span> <span class="s2">"https://facebook.com/829175116"</span><span class="p">,</span>
+  <span class="s2">"first_name"</span><span class="o">:</span> <span class="s2">"Dan"</span><span class="p">,</span>
+  <span class="s2">"gender"</span><span class="o">:</span> <span class="s2">"male"</span><span class="p">,</span>
+  <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="s2">"0.0"</span><span class="p">,</span>
+  <span class="s2">"id"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+  <span class="s2">"image_url"</span><span class="o">:</span> <span class="s2">"http://s3.amazonaws.com/clarityfm-staging/users/pictures/7/profile_square/BIO%20-%20Headshot.jpg?1332179519"</span><span class="p">,</span>
+  <span class="s2">"last_active_at"</span><span class="o">:</span> <span class="s2">"2012-08-02T02:19:59Z"</span><span class="p">,</span>
+  <span class="s2">"last_name"</span><span class="o">:</span> <span class="s2">"Martell"</span><span class="p">,</span>
+  <span class="s2">"linkedin_profile_url"</span><span class="o">:</span> <span class="s2">"http://www.linkedin.com/x/profile/7qvyw2754dt5/8bn1Mfx4Ce"</span><span class="p">,</span>
+  <span class="s2">"location"</span><span class="o">:</span> <span class="s2">"San Francisco, California"</span><span class="p">,</span>
+  <span class="s2">"profile_page_views_count"</span><span class="o">:</span> <span class="mi">2645</span><span class="p">,</span>
+  <span class="s2">"public_social_connections"</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s2">"facebook"</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="s2">"linkedin"</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="s2">"twitter"</span><span class="o">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="s2">"screen_name"</span><span class="o">:</span> <span class="s2">"danmartell"</span><span class="p">,</span>
+  <span class="s2">"timezone"</span><span class="o">:</span> <span class="s2">"Atlantic Time (Canada)"</span><span class="p">,</span>
+  <span class="s2">"timezone_label"</span><span class="o">:</span> <span class="s2">"ADT"</span><span class="p">,</span>
+  <span class="s2">"timezone_offset"</span><span class="o">:</span> <span class="o">-</span><span class="mf">3.0</span><span class="p">,</span>
+  <span class="s2">"total_calls"</span><span class="o">:</span> <span class="mi">450</span><span class="p">,</span>
+  <span class="s2">"twitter_profile_url"</span><span class="o">:</span> <span class="s2">"http://twitter.com/account/redirect_by_id?id=10638782"</span><span class="p">,</span>
+  <span class="s2">"updated_at"</span><span class="o">:</span> <span class="s2">"2012-08-03T11:56:53Z"</span><span class="p">,</span>
+  <span class="s2">"verified_phone_number"</span><span class="o">:</span> <span class="kc">true</span>
+<span class="p">}</span>
+</pre></div>
+
+<h3>GET /v1/me</h3>
+
+<p><a href="#get-v1members">GET /v1/members</a> for the current member.</p>
+
+<h2>Calls</h2>
+
+<h3>GET /v1/calls/requested</h3>
+
+<p>Gets all pending calls where the authenticated member is the seeker.</p>
+
+<pre><code>GET /v1/calls/requested
+</code></pre>
+
+<div class="highlight"><pre><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-03T12:10:46Z"</span><span class="p">,</span>
+    <span class="s2">"canceled_by"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="s2">"duration"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="s2">"expert_id"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"expires_at"</span><span class="o">:</span> <span class="s2">"2012-08-06T12:10:46Z"</span><span class="p">,</span>
+    <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="s2">"id"</span><span class="o">:</span> <span class="mi">5802</span><span class="p">,</span>
+    <span class="s2">"reason"</span><span class="o">:</span> <span class="s2">"Social media marketing"</span><span class="p">,</span>
+    <span class="s2">"seeker_id"</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="s2">"status"</span><span class="o">:</span> <span class="s2">"pending"</span><span class="p">,</span>
+    <span class="s2">"updated_at"</span><span class="o">:</span> <span class="s2">"2012-08-03T12:10:46Z"</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+
+<h3>GET /v1/calls/callback</h3>
+
+<p>Gets all pending calls where the authenticated member is the expert.  These can be connected with <a href="#post-v1callsidconnect">POST /v1/calls/:id/connect</a>.</p>
+
+<pre><code>GET /v1/calls/callback
+</code></pre>
+
+<div class="highlight"><pre><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-05T11:16:23Z"</span><span class="p">,</span>
+    <span class="s2">"canceled_by"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="s2">"duration"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="s2">"expert_id"</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="s2">"expires_at"</span><span class="o">:</span> <span class="s2">"2012-08-06T11:16:23Z"</span><span class="p">,</span>
+    <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">100.0</span><span class="p">,</span>
+    <span class="s2">"id"</span><span class="o">:</span> <span class="mi">5802</span><span class="p">,</span>
+    <span class="s2">"reason"</span><span class="o">:</span> <span class="s2">"pitching advice"</span><span class="p">,</span>
+    <span class="s2">"seeker_id"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"status"</span><span class="o">:</span> <span class="s2">"pending"</span><span class="p">,</span>
+    <span class="s2">"updated_at"</span><span class="o">:</span> <span class="s2">"2012-08-05T11:16:23Z"</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+
+<h3>GET /v1/calls/completed</h3>
+
+<p>Show the current member's completed calls.  This includes both expert calls and seeker calls.</p>
+
+<pre><code>GET /v1/calls/completed
+</code></pre>
+
+<div class="highlight"><pre><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-03T12:10:46Z"</span><span class="p">,</span>
+    <span class="s2">"canceled_by"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="s2">"duration"</span><span class="o">:</span> <span class="mi">479</span><span class="p">,</span>
+    <span class="s2">"expert_id"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"expires_at"</span><span class="o">:</span> <span class="s2">"2012-08-06T12:10:46Z"</span><span class="p">,</span>
+    <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="s2">"id"</span><span class="o">:</span> <span class="mi">5802</span><span class="p">,</span>
+    <span class="s2">"reason"</span><span class="o">:</span> <span class="s2">"Social media marketing"</span><span class="p">,</span>
+    <span class="s2">"seeker_id"</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="s2">"status"</span><span class="o">:</span> <span class="s2">"completed"</span><span class="p">,</span>
+    <span class="s2">"updated_at"</span><span class="o">:</span> <span class="s2">"2012-08-05T11:22:51Z"</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-05T11:16:23Z"</span><span class="p">,</span>
+    <span class="s2">"canceled_by"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="s2">"duration"</span><span class="o">:</span> <span class="mi">1123</span><span class="p">,</span>
+    <span class="s2">"expert_id"</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="s2">"expires_at"</span><span class="o">:</span> <span class="s2">"2012-08-06T11:16:23Z"</span><span class="p">,</span>
+    <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">100.0</span><span class="p">,</span>
+    <span class="s2">"id"</span><span class="o">:</span> <span class="mi">5802</span><span class="p">,</span>
+    <span class="s2">"reason"</span><span class="o">:</span> <span class="s2">"pitching advice"</span><span class="p">,</span>
+    <span class="s2">"seeker_id"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"status"</span><span class="o">:</span> <span class="s2">"completed"</span><span class="p">,</span>
+    <span class="s2">"updated_at"</span><span class="o">:</span> <span class="s2">"2012-08-09T10:12:16Z"</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+
+<h3>GET /v1/calls/canceled</h3>
+
+<p>Show the current member's canceled calls.  This includes both expert calls and seeker calls.</p>
+
+<pre><code>GET /v1/calls/canceled
+</code></pre>
+
+<div class="highlight"><pre><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-03T12:10:46Z"</span><span class="p">,</span>
+    <span class="s2">"canceled_by"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"duration"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="s2">"expert_id"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"expires_at"</span><span class="o">:</span> <span class="s2">"2012-08-06T12:10:46Z"</span><span class="p">,</span>
+    <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="s2">"id"</span><span class="o">:</span> <span class="mi">5802</span><span class="p">,</span>
+    <span class="s2">"reason"</span><span class="o">:</span> <span class="s2">"Social media marketing"</span><span class="p">,</span>
+    <span class="s2">"seeker_id"</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="s2">"status"</span><span class="o">:</span> <span class="s2">"canceled"</span><span class="p">,</span>
+    <span class="s2">"updated_at"</span><span class="o">:</span> <span class="s2">"2012-08-05T11:22:51Z"</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-05T11:16:23Z"</span><span class="p">,</span>
+    <span class="s2">"canceled_by"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"duration"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+    <span class="s2">"expert_id"</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="s2">"expires_at"</span><span class="o">:</span> <span class="s2">"2012-08-06T11:16:23Z"</span><span class="p">,</span>
+    <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">100.0</span><span class="p">,</span>
+    <span class="s2">"id"</span><span class="o">:</span> <span class="mi">5802</span><span class="p">,</span>
+    <span class="s2">"reason"</span><span class="o">:</span> <span class="s2">"pitching advice"</span><span class="p">,</span>
+    <span class="s2">"seeker_id"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"status"</span><span class="o">:</span> <span class="s2">"canceled"</span><span class="p">,</span>
+    <span class="s2">"updated_at"</span><span class="o">:</span> <span class="s2">"2012-08-09T10:12:16Z"</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+
+<h3>GET /v1/calls/:id</h3>
+
+<ul>
+<li>
+<strong>id</strong>: The id of the call to fetch</li>
+</ul><p>Get information about the specific call.  Can be called multiple times to track an in progress call.</p>
+
+<p>A call can in one of many different states during its lifetime.  States may be added and removed as we adapt our call flows, but a stable subset of the possible states are:</p>
+
+<ul>
+<li>pending</li>
+<li>dialing_seeker</li>
+<li>seeker_answered</li>
+<li>dialing_expert</li>
+<li>expert_answered</li>
+<li>seeker_unavailable</li>
+<li>expert_unavailable</li>
+<li>call_completed</li>
+<li>canceled</li>
+</ul><pre><code>GET /v1/calls/:id
+</code></pre>
+
+<div class="highlight"><pre><span class="p">{</span>
+  <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-05T11:16:23Z"</span><span class="p">,</span>
+  <span class="s2">"canceled_by"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+  <span class="s2">"duration"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+  <span class="s2">"expert_id"</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
+  <span class="s2">"expires_at"</span><span class="o">:</span> <span class="s2">"2012-08-06T11:16:23Z"</span><span class="p">,</span>
+  <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">100.0</span><span class="p">,</span>
+  <span class="s2">"id"</span><span class="o">:</span> <span class="mi">5802</span><span class="p">,</span>
+  <span class="s2">"reason"</span><span class="o">:</span> <span class="s2">"pitching advice"</span><span class="p">,</span>
+  <span class="s2">"seeker_id"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+  <span class="s2">"status"</span><span class="o">:</span> <span class="s2">"expert_answered"</span><span class="p">,</span>
+  <span class="s2">"updated_at"</span><span class="o">:</span> <span class="s2">"2012-08-09T10:12:16Z"</span>
+<span class="p">}</span>
+</pre></div>
+
+<h3>POST /v1/calls/:id/connect</h3>
+
+<ul>
+<li>
+<strong>id</strong>: The id of the call to connect. Must be from <a href="get-v1callscallback">GET /v1/calls/callback</a>.</li>
+</ul><p>Initiate a call. <a href="#get-v1callsid">GET /v1/calls/:id</a> may be called repeatedly to track its progress.</p>
+
+<pre><code>POST /v1/calls/:id/connect
+</code></pre>
+
+<div class="highlight"><pre><span class="p">{</span>
+  <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-05T11:16:23Z"</span><span class="p">,</span>
+  <span class="s2">"canceled_by"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+  <span class="s2">"duration"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+  <span class="s2">"expert_id"</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
+  <span class="s2">"expires_at"</span><span class="o">:</span> <span class="s2">"2012-08-06T11:16:23Z"</span><span class="p">,</span>
+  <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">100.0</span><span class="p">,</span>
+  <span class="s2">"id"</span><span class="o">:</span> <span class="mi">5802</span><span class="p">,</span>
+  <span class="s2">"reason"</span><span class="o">:</span> <span class="s2">"pitching advice"</span><span class="p">,</span>
+  <span class="s2">"seeker_id"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+  <span class="s2">"status"</span><span class="o">:</span> <span class="s2">"dialing_expert"</span><span class="p">,</span>
+  <span class="s2">"updated_at"</span><span class="o">:</span> <span class="s2">"2012-08-09T10:12:16Z"</span>
+<span class="p">}</span>
+</pre></div>
+
+<h3>POST /v1/calls</h3>
+
+<ul>
+<li>
+<strong>expert_id</strong>: The id of the expert to connect with.</li>
+<li>
+<strong>expires_in</strong>: The expiry time in hours.</li>
+<li>
+<strong>reason</strong>: The reason for the call (max 140 chars)</li>
+</ul><p>Creates a new call request.</p>
+
+<pre><code>POST /v1/calls
+</code></pre>
+
+<div class="highlight"><pre><span class="p">{</span>
+  <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-05T11:16:23Z"</span><span class="p">,</span>
+  <span class="s2">"canceled_by"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+  <span class="s2">"duration"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+  <span class="s2">"expert_id"</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
+  <span class="s2">"expires_at"</span><span class="o">:</span> <span class="s2">"2012-08-06T11:16:23Z"</span><span class="p">,</span>
+  <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">100.0</span><span class="p">,</span>
+  <span class="s2">"id"</span><span class="o">:</span> <span class="mi">5802</span><span class="p">,</span>
+  <span class="s2">"reason"</span><span class="o">:</span> <span class="s2">"pitching advice"</span><span class="p">,</span>
+  <span class="s2">"seeker_id"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+  <span class="s2">"updated_at"</span><span class="o">:</span> <span class="s2">"2012-08-09T10:12:16Z"</span>
+<span class="p">}</span>
+</pre></div>
+
+<h2>Needs</h2>
+
+<h3>GET /v1/needs</h3>
+
+<p>A list of all posted needs for the members of your organizations.</p>
+
+<pre><code>GET /v1/needs
+</code></pre>
+
+<div class="highlight"><pre><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-04T00:28:03Z"</span><span class="p">,</span>
+    <span class="s2">"description"</span><span class="o">:</span> <span class="s2">"Would be awesome if you guys added Shiv Singh (Global Head of Digital, PepsiCo Beverages) and Gary Vaynerchuck."</span><span class="p">,</span>
+    <span class="s2">"paid"</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="s2">"requester_id"</span><span class="o">:</span> <span class="mi">771</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+
+<h3>POST /v1/needs</h3>
+
+<ul>
+<li>
+<strong>description</strong>: Describe your need</li>
+<li>
+<strong>paid</strong>: Are you willing to pay?</li>
+</ul><p>Create a new need, viewable by members of your organizations.</p>
+
+<pre><code>POST /v1/needs
+</code></pre>
+
+<div class="highlight"><pre><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-04T00:28:03Z"</span><span class="p">,</span>
+    <span class="s2">"description"</span><span class="o">:</span> <span class="s2">"Would be awesome if you guys added Shiv Singh (Global Head of Digital, PepsiCo Beverages) and Gary Vaynerchuck."</span><span class="p">,</span>
+    <span class="s2">"paid"</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="s2">"requester_id"</span><span class="o">:</span> <span class="mi">771</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+
+<h3>POST /v1/needs/:id/fulfill</h3>
+
+<ul>
+<li>
+<strong>id</strong>: the id of the need to fulfill</li>
+</ul><p><strong>NOTE:</strong> this endpoint hasn't been finalized and will likely change in the future.</p>
+
+<p>Fulfills a need by creating a pending call request with the member who posted the need.</p>
+
+<pre><code>POST /v1/needs/:id/fulfill
+</code></pre>
+
+<div class="highlight"><pre><span class="p">{</span>
+  <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-03T12:10:46Z"</span><span class="p">,</span>
+  <span class="s2">"canceled_by"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+  <span class="s2">"duration"</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+  <span class="s2">"expert_id"</span><span class="o">:</span> <span class="mi">7</span><span class="p">,</span>
+  <span class="s2">"expires_at"</span><span class="o">:</span> <span class="s2">"2012-08-06T12:10:46Z"</span><span class="p">,</span>
+  <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">0.0</span><span class="p">,</span>
+  <span class="s2">"id"</span><span class="o">:</span> <span class="mi">5802</span><span class="p">,</span>
+  <span class="s2">"reason"</span><span class="o">:</span> <span class="s2">"Social media marketing"</span><span class="p">,</span>
+  <span class="s2">"seeker_id"</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
+  <span class="s2">"status"</span><span class="o">:</span> <span class="s2">"pending"</span><span class="p">,</span>
+  <span class="s2">"updated_at"</span><span class="o">:</span> <span class="s2">"2012-08-03T12:10:46Z"</span>
+<span class="p">}</span>
+</pre></div>
+
+<h2>Organizations</h2>
+
+<h3>GET /v1/organizations</h3>
+
+<p>Get a list of organizations that the current member is part of.</p>
+
+<pre><code>GET /v1/organizations
+</code></pre>
+
+<div class="highlight"><pre><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">"name"</span><span class="o">:</span> <span class="s2">"Startup Festival"</span><span class="p">,</span>
+    <span class="s2">"description"</span><span class="o">:</span> <span class="s2">"International Startup Festival"</span><span class="p">,</span>
+    <span class="s2">"featured"</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="s2">"free_calls"</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+    <span class="s2">"clarity_url"</span><span class="o">:</span> <span class="s2">"http://clarity.fm/startupweekend"</span><span class="p">,</span>
+    <span class="s2">"image_url"</span><span class="o">:</span> <span class="s2">"https://s3.amazonaws.com/clarityfm-production/networks/logos/17/list_square/logo.png?1340721323"</span><span class="p">,</span>
+    <span class="s2">"member_ids"</span><span class="o">:</span> <span class="p">[</span><span class="mi">172</span><span class="p">,</span> <span class="mi">5840</span><span class="p">,</span> <span class="mi">10204</span><span class="p">]</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+
+<h3>GET /v1/organizations/:id</h3>
+
+<ul>
+<li>
+<strong>id</strong>: the id of the organization to fetch</li>
+</ul><p>Get an organization with a list of the members that are part of the organization for the current user.</p>
+
+<pre><code>GET /v1/organizations/:id
+</code></pre>
+
+<div class="highlight"><pre><span class="p">{</span>
+  <span class="s2">"name"</span><span class="o">:</span> <span class="s2">"Startup Festival"</span><span class="p">,</span>
+  <span class="s2">"description"</span><span class="o">:</span> <span class="s2">"International Startup Festival"</span><span class="p">,</span>
+  <span class="s2">"featured"</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+  <span class="s2">"free_calls"</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+  <span class="s2">"clarity_url"</span><span class="o">:</span> <span class="s2">"http://clarity.fm/startupweekend"</span><span class="p">,</span>
+  <span class="s2">"image_url"</span><span class="o">:</span> <span class="s2">"https://s3.amazonaws.com/clarityfm-production/networks/logos/17/list_square/logo.png?1340721323"</span><span class="p">,</span>
+  <span class="s2">"members"</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">"bio"</span><span class="o">:</span> <span class="s2">"Founding member at Clarity. Code aficionado. Lives in an igloo and hunts beavers for food. Occasional unicycle riding scuba diving hippie. Current life ambition: finish reading Gödel, Escher, Bach."</span><span class="p">,</span>
+      <span class="s2">"clarity_url"</span><span class="o">:</span> <span class="s2">"http://clarity.fm/justinvaillancourt"</span><span class="p">,</span>
+      <span class="s2">"first_name"</span><span class="o">:</span> <span class="s2">"Justin"</span><span class="p">,</span>
+      <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">0.0</span><span class="p">,</span>
+      <span class="s2">"id"</span><span class="o">:</span> <span class="mi">66</span><span class="p">,</span>
+      <span class="s2">"image_url"</span><span class="o">:</span> <span class="s2">"http://s3.amazonaws.com/clarityfm-staging/users/pictures/66/profile_square/picture?1331917625"</span><span class="p">,</span>
+      <span class="s2">"last_name"</span><span class="o">:</span> <span class="s2">"Vaillancourt"</span><span class="p">,</span>
+      <span class="s2">"location"</span><span class="o">:</span> <span class="s2">"Moncton, New Brunswick"</span><span class="p">,</span>
+      <span class="s2">"name"</span><span class="o">:</span> <span class="s2">"Justin Vaillancourt"</span><span class="p">,</span>
+      <span class="s2">"screen_name"</span><span class="o">:</span> <span class="s2">"justinvaillancourt"</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s2">"bio"</span><span class="o">:</span> <span class="s2">"Like all things web development - rails, ruby, javascript, html, css, user experience. Working on Clarity to help you help others."</span><span class="p">,</span>
+      <span class="s2">"clarity_url"</span><span class="o">:</span> <span class="s2">"http://clarity.fm/vincentroy"</span><span class="p">,</span>
+      <span class="s2">"first_name"</span><span class="o">:</span> <span class="s2">"Vincent"</span><span class="p">,</span>
+      <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">20.0</span><span class="p">,</span>
+      <span class="s2">"id"</span><span class="o">:</span> <span class="mi">940</span><span class="p">,</span>
+      <span class="s2">"image_url"</span><span class="o">:</span> <span class="s2">"http://s3.amazonaws.com/clarityfm-staging/users/pictures/940/profile_square/vincent-avatar.jpg?1339414662"</span><span class="p">,</span>
+      <span class="s2">"last_name"</span><span class="o">:</span> <span class="s2">"Roy"</span><span class="p">,</span>
+      <span class="s2">"location"</span><span class="o">:</span> <span class="s2">"Moncton, New Brunswick"</span><span class="p">,</span>
+      <span class="s2">"name"</span><span class="o">:</span> <span class="s2">"Vincent Roy"</span><span class="p">,</span>
+      <span class="s2">"screen_name"</span><span class="o">:</span> <span class="s2">"vincentroy"</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+
+<h2>Messages</h2>
+
+<h3>GET /v1/messages</h3>
+
+<p>Get a list of conversations that the current member is part of.</p>
+
+<pre><code>GET /v1/messages
+</code></pre>
+
+<div class="highlight"><pre><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">"unread_message_count"</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="nx">last_message</span><span class="o">:</span> <span class="p">{</span>
+      <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-05T11:16:23Z"</span><span class="p">,</span>
+      <span class="s2">"read"</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+      <span class="s2">"message"</span><span class="o">:</span> <span class="s2">"Not much"</span><span class="p">,</span>
+      <span class="s2">"member_id"</span><span class="o">:</span> <span class="mi">940</span>
+    <span class="p">},</span>
+    <span class="nx">other_member</span><span class="o">:</span> <span class="p">{</span>
+      <span class="s2">"bio"</span><span class="o">:</span> <span class="s2">"Like all things web development - rails, ruby, javascript, html, css, user experience. Working on Clarity to help you help others."</span><span class="p">,</span>
+      <span class="s2">"clarity_url"</span><span class="o">:</span> <span class="s2">"http://clarity.fm/vincentroy"</span><span class="p">,</span>
+      <span class="s2">"first_name"</span><span class="o">:</span> <span class="s2">"Vincent"</span><span class="p">,</span>
+      <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">20.0</span><span class="p">,</span>
+      <span class="s2">"id"</span><span class="o">:</span> <span class="mi">940</span><span class="p">,</span>
+      <span class="s2">"image_url"</span><span class="o">:</span> <span class="s2">"http://s3.amazonaws.com/clarityfm-staging/users/pictures/940/profile_square/vincent-avatar.jpg?1339414662"</span><span class="p">,</span>
+      <span class="s2">"last_name"</span><span class="o">:</span> <span class="s2">"Roy"</span><span class="p">,</span>
+      <span class="s2">"location"</span><span class="o">:</span> <span class="s2">"Moncton, New Brunswick"</span><span class="p">,</span>
+      <span class="s2">"name"</span><span class="o">:</span> <span class="s2">"Vincent Roy"</span><span class="p">,</span>
+      <span class="s2">"screen_name"</span><span class="o">:</span> <span class="s2">"vincentroy"</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+
+<h3>GET /v1/messages/:member_id</h3>
+
+<p>Get the last 50 messages that were sent between the current member and the specified member.</p>
+
+<pre><code>GET /v1/messages/940
+</code></pre>
+
+<div class="highlight"><pre><span class="p">{</span>
+  <span class="nx">other_member</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s2">"bio"</span><span class="o">:</span> <span class="s2">"Like all things web development - rails, ruby, javascript, html, css, user experience. Working on Clarity to help you help others."</span><span class="p">,</span>
+    <span class="s2">"clarity_url"</span><span class="o">:</span> <span class="s2">"http://clarity.fm/vincentroy"</span><span class="p">,</span>
+    <span class="s2">"first_name"</span><span class="o">:</span> <span class="s2">"Vincent"</span><span class="p">,</span>
+    <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">20.0</span><span class="p">,</span>
+    <span class="s2">"id"</span><span class="o">:</span> <span class="mi">940</span><span class="p">,</span>
+    <span class="s2">"image_url"</span><span class="o">:</span> <span class="s2">"http://s3.amazonaws.com/clarityfm-staging/users/pictures/940/profile_square/vincent-avatar.jpg?1339414662"</span><span class="p">,</span>
+    <span class="s2">"last_name"</span><span class="o">:</span> <span class="s2">"Roy"</span><span class="p">,</span>
+    <span class="s2">"location"</span><span class="o">:</span> <span class="s2">"Moncton, New Brunswick"</span><span class="p">,</span>
+    <span class="s2">"name"</span><span class="o">:</span> <span class="s2">"Vincent Roy"</span><span class="p">,</span>
+    <span class="s2">"screen_name"</span><span class="o">:</span> <span class="s2">"vincentroy"</span>
+  <span class="p">},</span>
+  <span class="nx">messages</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-05T11:16:23Z"</span><span class="p">,</span>
+      <span class="s2">"read"</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+      <span class="s2">"message"</span><span class="o">:</span> <span class="s2">"Not much"</span><span class="p">,</span>
+      <span class="s2">"member_id"</span><span class="o">:</span> <span class="mi">940</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-04T14:34:23Z"</span><span class="p">,</span>
+      <span class="s2">"read"</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+      <span class="s2">"message"</span><span class="o">:</span> <span class="s2">"Hey, what's up?"</span><span class="p">,</span>
+      <span class="s2">"member_id"</span><span class="o">:</span> <span class="mi">172</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+
+<h3>POST /v1/messages/:member_id</h3>
+
+<p>Send a message from the current member to the specified member.</p>
+
+<ul>
+<li>
+<strong>message</strong>: The message</li>
+</ul><pre><code>POST /v1/messages/940
+</code></pre>
+
+<div class="highlight"><pre><span class="p">{</span>
+  <span class="s2">"created_at"</span><span class="o">:</span> <span class="s2">"2012-08-05T11:16:23Z"</span><span class="p">,</span>
+  <span class="s2">"read"</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+  <span class="s2">"message"</span><span class="o">:</span> <span class="s2">"Not much"</span><span class="p">,</span>
+  <span class="s2">"member_id"</span><span class="o">:</span> <span class="mi">940</span>
+<span class="p">}</span>
+</pre></div>
+
+<h2>Search</h2>
+
+<h3>GET /v1/search</h3>
+
+<p>Search for an Expert. Returns 10 results at a time.</p>
+
+<ul>
+<li>
+<strong>q</strong>: A search term</li>
+<li>
+<strong>offset</strong>: <em>(optional)</em> An offset, used to page through the results</li>
+</ul><pre><code>GET /v1/search?q=moncton
+GET /v1/search/moncton
+</code></pre>
+
+<div class="highlight"><pre><span class="p">{</span>
+  <span class="s2">"matches"</span><span class="o">:</span> <span class="mi">73</span><span class="p">,</span>
+  <span class="s2">"members"</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">"bio"</span><span class="o">:</span> <span class="s2">"Founding member at Clarity. Code aficionado. Lives in an igloo and hunts beavers for food. Occasional unicycle riding scuba diving hippie. Current life ambition: finish reading Gödel, Escher, Bach."</span><span class="p">,</span>
+      <span class="s2">"clarity_url"</span><span class="o">:</span> <span class="s2">"http://clarity.fm/justinvaillancourt"</span><span class="p">,</span>
+      <span class="s2">"first_name"</span><span class="o">:</span> <span class="s2">"Justin"</span><span class="p">,</span>
+      <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">0.0</span><span class="p">,</span>
+      <span class="s2">"id"</span><span class="o">:</span> <span class="mi">66</span><span class="p">,</span>
+      <span class="s2">"image_url"</span><span class="o">:</span> <span class="s2">"http://s3.amazonaws.com/clarityfm-staging/users/pictures/66/profile_square/picture?1331917625"</span><span class="p">,</span>
+      <span class="s2">"last_name"</span><span class="o">:</span> <span class="s2">"Vaillancourt"</span><span class="p">,</span>
+      <span class="s2">"location"</span><span class="o">:</span> <span class="s2">"Moncton, New Brunswick"</span><span class="p">,</span>
+      <span class="s2">"name"</span><span class="o">:</span> <span class="s2">"Justin Vaillancourt"</span><span class="p">,</span>
+      <span class="s2">"screen_name"</span><span class="o">:</span> <span class="s2">"justinvaillancourt"</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s2">"bio"</span><span class="o">:</span> <span class="s2">"Like all things web development - rails, ruby, javascript, html, css, user experience. Working on Clarity to help you help others."</span><span class="p">,</span>
+      <span class="s2">"clarity_url"</span><span class="o">:</span> <span class="s2">"http://clarity.fm/vincentroy"</span><span class="p">,</span>
+      <span class="s2">"first_name"</span><span class="o">:</span> <span class="s2">"Vincent"</span><span class="p">,</span>
+      <span class="s2">"hourly_rate"</span><span class="o">:</span> <span class="mf">20.0</span><span class="p">,</span>
+      <span class="s2">"id"</span><span class="o">:</span> <span class="mi">940</span><span class="p">,</span>
+      <span class="s2">"image_url"</span><span class="o">:</span> <span class="s2">"http://s3.amazonaws.com/clarityfm-staging/users/pictures/940/profile_square/vincent-avatar.jpg?1339414662"</span><span class="p">,</span>
+      <span class="s2">"last_name"</span><span class="o">:</span> <span class="s2">"Roy"</span><span class="p">,</span>
+      <span class="s2">"location"</span><span class="o">:</span> <span class="s2">"Moncton, New Brunswick"</span><span class="p">,</span>
+      <span class="s2">"name"</span><span class="o">:</span> <span class="s2">"Vincent Roy"</span><span class="p">,</span>
+      <span class="s2">"screen_name"</span><span class="o">:</span> <span class="s2">"vincentroy"</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
