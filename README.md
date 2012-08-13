@@ -14,38 +14,38 @@ OAuth Applications can be registered at http://api.clarity.fm/applications.  Upo
 
 ### Requesting an oauth_token
 
-~~~
+```
 GET https://clarity.fm/oauth/authorize?
     client_id=...&
     response_type=code
-~~~
+```
 
-~~~
+```
 HTTP 302 http://your/callback/uri?code=...
-~~~
+```
 
 If successful, we'll redirect to the redirect URI that was specified when the application was created, passing a code parameter in the query string.  This can then be used to request an oauth_token:
 
-~~~
+```
 POST https://clarity.fm/oauth/authorize?
      client_id=...&
      client_secret=...&
      code=...&
      grant_type=authorization_code
-~~~
+```
 
-~~~
+```
   HTTP 200
   Body: oauth_token
-~~~
+```
 
 If all goes well, we'll respond with the oauth_token, which must be passed as a parameter on all API requests.
 
 If you're using Clarity to provide authorization for your application, you'll likely want to call the [GET /v1/me](#GETme) endpoint to obtain information about the current member.
 
-~~~
+```
   GET https://api.clarity.fm/v1/me?oauth_token=...
-~~~
+```
 
 ## Endpoints
 
@@ -97,15 +97,15 @@ If you're using Clarity to provide authorization for your application, you'll li
 
 Get member information by id, screen name, Twitter handle or email address.
 
-~~~
+```
 GET /v1/members/danmartell
 GET /v1/members/7
 GET /v1/members?id=danmartell
 GET /v1/members?twitter=danmartell
 GET /v1/members?email=dan@larity.fm
-~~~
+```
 
-~~~javascript
+```javascript
 {
   "amount_generated_for_charity": 1137.15,
   "average_call_duration": 750,
@@ -142,7 +142,7 @@ GET /v1/members?email=dan@larity.fm
   "updated_at": "2012-08-03T11:56:53Z",
   "verified_phone_number": true
 }
-~~~
+```
 
 ### GET /v1/me
 
@@ -154,11 +154,11 @@ GET /v1/members?email=dan@larity.fm
 
 Gets all pending calls where the authenticated member is the seeker.
 
-~~~
+```
 GET /v1/calls/requested
-~~~
+```
 
-~~~javascript
+```javascript
 [
   {
     "created_at": "2012-08-03T12:10:46Z",
@@ -174,17 +174,17 @@ GET /v1/calls/requested
     "updated_at": "2012-08-03T12:10:46Z"
   }
 ]
-~~~
+```
 
 ### GET /v1/calls/callback
 
 Gets all pending calls where the authenticated member is the expert.  These can be connected with [POST /v1/calls/:id/connect](#post-v1callsidconnect).
 
-~~~
+```
 GET /v1/calls/callback
-~~~
+```
 
-~~~javascript
+```javascript
 [
   {
     "created_at": "2012-08-05T11:16:23Z",
@@ -200,17 +200,17 @@ GET /v1/calls/callback
     "updated_at": "2012-08-05T11:16:23Z"
   }
 ]
-~~~
+```
 
 ### GET /v1/calls/completed
 
 Show the current member's completed calls.  This includes both expert calls and seeker calls.
 
-~~~
+```
 GET /v1/calls/completed
-~~~
+```
 
-~~~javascript
+```javascript
 [
   {
     "created_at": "2012-08-03T12:10:46Z",
@@ -239,17 +239,17 @@ GET /v1/calls/completed
     "updated_at": "2012-08-09T10:12:16Z"
   }
 ]
-~~~
+```
 
 ### GET /v1/calls/canceled
 
 Show the current member's canceled calls.  This includes both expert calls and seeker calls.
 
-~~~
+```
 GET /v1/calls/canceled
-~~~
+```
 
-~~~javascript
+```javascript
 [
   {
     "created_at": "2012-08-03T12:10:46Z",
@@ -278,7 +278,7 @@ GET /v1/calls/canceled
     "updated_at": "2012-08-09T10:12:16Z"
   }
 ]
-~~~
+```
 
 ### GET /v1/calls/:id
 
@@ -298,11 +298,11 @@ A call can in one of many different states during its lifetime.  States may be a
 * call_completed
 * canceled
 
-~~~
+```
 GET /v1/calls/:id
-~~~
+```
 
-~~~javascript
+```javascript
 {
   "created_at": "2012-08-05T11:16:23Z",
   "canceled_by": 7,
@@ -316,7 +316,7 @@ GET /v1/calls/:id
   "status": "expert_answered",
   "updated_at": "2012-08-09T10:12:16Z"
 }
-~~~
+```
 
 ### POST /v1/calls/:id/connect
 
@@ -324,11 +324,11 @@ GET /v1/calls/:id
 
 Initiate a call. [GET /v1/calls/:id](#get-v1callsid) may be called repeatedly to track its progress.
 
-~~~
+```
 POST /v1/calls/:id/connect
-~~~
+```
 
-~~~javascript
+```javascript
 {
   "created_at": "2012-08-05T11:16:23Z",
   "canceled_by": 7,
@@ -342,7 +342,7 @@ POST /v1/calls/:id/connect
   "status": "dialing_expert",
   "updated_at": "2012-08-09T10:12:16Z"
 }
-~~~
+```
 
 ### POST /v1/calls
 
@@ -352,11 +352,11 @@ POST /v1/calls/:id/connect
 
 Creates a new call request.
 
-~~~
+```
 POST /v1/calls
-~~~
+```
 
-~~~javascript
+```javascript
 {
   "created_at": "2012-08-05T11:16:23Z",
   "canceled_by": 7,
@@ -369,7 +369,7 @@ POST /v1/calls
   "seeker_id": 7,
   "updated_at": "2012-08-09T10:12:16Z"
 }
-~~~
+```
 
 ## Needs
 
@@ -377,11 +377,11 @@ POST /v1/calls
 
 A list of all posted needs for the members of your organizations.
 
-~~~
+```
 GET /v1/needs
-~~~
+```
 
-~~~javascript
+```javascript
 [
   {
     "created_at": "2012-08-04T00:28:03Z",
@@ -390,7 +390,7 @@ GET /v1/needs
     "requester_id": 771
   }
 ]
-~~~
+```
 
 ### POST /v1/needs
 
@@ -400,11 +400,11 @@ GET /v1/needs
 
 Create a new need, viewable by members of your organizations.
 
-~~~
+```
 POST /v1/needs
-~~~
+```
 
-~~~javascript
+```javascript
 [
   {
     "created_at": "2012-08-04T00:28:03Z",
@@ -413,7 +413,7 @@ POST /v1/needs
     "requester_id": 771
   }
 ]
-~~~
+```
 
 ### POST /v1/needs/:id/fulfill
 
@@ -423,11 +423,11 @@ POST /v1/needs
 
 Fulfills a need by creating a pending call request with the member who posted the need.
 
-~~~
+```
 POST /v1/needs/:id/fulfill
-~~~~
+```~
 
-~~~javascript
+```javascript
 {
   "created_at": "2012-08-03T12:10:46Z",
   "canceled_by": null,
@@ -441,7 +441,7 @@ POST /v1/needs/:id/fulfill
   "status": "pending",
   "updated_at": "2012-08-03T12:10:46Z"
 }
-~~~
+```
 
 ## Organizations
 
@@ -449,11 +449,11 @@ POST /v1/needs/:id/fulfill
 
 Get a list of organizations that the current member is part of.
 
-~~~
+```
 GET /v1/organizations
-~~~
+```
 
-~~~ javascript
+``` javascript
 [
   {
     "name": "Startup Festival",
@@ -465,7 +465,7 @@ GET /v1/organizations
     "member_ids": [172, 5840, 10204]
   }
 ]
-~~~
+```
 
 ### GET /v1/organizations/:id
 
@@ -473,11 +473,11 @@ GET /v1/organizations
 
 Get an organization with a list of the members that are part of the organization for the current user.
 
-~~~
+```
 GET /v1/organizations/:id
-~~~
+```
 
-~~~javascript
+```javascript
 {
   "name": "Startup Festival",
   "description": "International Startup Festival",
@@ -512,7 +512,7 @@ GET /v1/organizations/:id
     }
   ]
 }
-~~~
+```
 
 
 ## Messages
@@ -521,11 +521,11 @@ GET /v1/organizations/:id
 
 Get a list of conversations that the current member is part of.
 
-~~~
+```
 GET /v1/messages
-~~~
+```
 
-~~~javascript
+```javascript
 [
   {
     "unread_message_count": 1,
@@ -549,18 +549,18 @@ GET /v1/messages
     }
   }
 ]
-~~~
+```
 
 
 ### GET /v1/messages/:member_id
 
 Get the last 50 messages that were sent between the current member and the specified member.
 
-~~~
+```
 GET /v1/messages/940
-~~~
+```
 
-~~~javascript
+```javascript
 {
   other_member: {
     "bio": "Like all things web development - rails, ruby, javascript, html, css, user experience. Working on Clarity to help you help others.",
@@ -589,7 +589,7 @@ GET /v1/messages/940
     }
   }
 ]
-~~~
+```
 
 ### POST /v1/messages/:member_id
 
@@ -597,18 +597,18 @@ Send a message from the current member to the specified member.
 
 * **message**: The message
 
-~~~
+```
 POST /v1/messages/940
-~~~
+```
 
-~~~javascript
+```javascript
 {
   "created_at": "2012-08-05T11:16:23Z",
   "read": false,
   "message": "Not much",
   "member_id": 940
 }
-~~~
+```
 
 
 ## Search
@@ -620,12 +620,12 @@ Search for an Expert. Returns 10 results at a time.
 * **q**: A search term
 * **offset**: _(optional)_ An offset, used to page through the results
 
-~~~
+```
 GET /v1/search?q=moncton
 GET /v1/search/moncton
-~~~
+```
 
-~~~javascript
+```javascript
 {
   "matches": 73,
   "members": [
@@ -655,5 +655,5 @@ GET /v1/search/moncton
     }
   ]
 }
-~~~
+```
 
